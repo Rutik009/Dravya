@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dravya Plant Atlas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'DM Sans', sans-serif;
+      background: #f6f1e8;
+      color: #2c2a28;
+      padding: 20px;
+    }
+    .wrap {
+      max-width: 1450px;
+      margin: 0 auto;
+    }
+    .header {
+      background: #fbf7f0;
+      border: 1px solid #d9cfbf;
+      border-top: 4px solid #6b8e7a;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      font-family: 'DM Serif Display', serif;
+    }
+    .header p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.75;
+      color: #6d685f;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      border-radius: 12px;
+      border: 1px solid #d9cfbf;
+      background: #fbf7f0;
+      font-size: 13px;
+      outline: none;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.55;
+    }
+    .btn {
+      padding: 11px 15px;
+      border-radius: 12px;
+      border: 1px solid #d9cfbf;
+      background: #fbf7f0;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .count {
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid #d9cfbf;
+      background: #fbf7f0;
+      font-size: 12px;
+      color: #6d685f;
+      font-weight: 700;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: #fbf7f0;
+      border: 1px solid #d9cfbf;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: 0.2s ease;
+      box-shadow: 0 6px 16px rgba(80, 70, 50, 0.06);
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 28px rgba(80, 70, 50, 0.10);
+    }
+    .img-wrap {
+      height: 220px;
+      background: #efe7db;
+      position: relative;
+      overflow: hidden;
+    }
+    .plant-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      cursor: pointer;
+    }
+    .fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      color: #8b7f70;
+      background: #efe7db;
+    }
+    .label {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      background: rgba(251,247,240,0.92);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #5c564d;
+    }
+    .body {
+      padding: 15px;
+    }
+    .name {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .latin {
+      font-size: 13px;
+      color: #4f7a57;
+      font-style: italic;
+      margin-bottom: 10px;
+      line-height: 1.5;
+      min-height: 38px;
+    }
+    .family {
+      font-size: 12px;
+      color: #6d685f;
+      border-top: 1px dashed #d9cfbf;
+      padding-top: 10px;
+      line-height: 1.6;
+    }
+    .family strong {
+      color: #2c2a28;
+    }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 11px;
+      color: #6d685f;
+      border-top: 1px solid #d9cfbf;
+      padding-top: 10px;
+      font-weight: 600;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(44,42,40,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 9999;
+    }
+    .modal.open {
+      display: flex;
+    }
+    .modal-card {
+      width: min(1000px, 96vw);
+      max-height: 92vh;
+      overflow: auto;
+      background: #fbf7f0;
+      border-radius: 18px;
+      border: 1px solid #d9cfbf;
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid #d9cfbf;
+    }
+    .modal-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+    }
+    .modal-sub {
+      font-size: 12px;
+      color: #6d685f;
+      margin-top: 4px;
+    }
+    .close {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid #d9cfbf;
+      background: #fbf7f0;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .modal-body {
+      padding: 18px 20px 20px;
+    }
+    .modal-img {
+      width: 100%;
+      max-height: 75vh;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #efe7db;
+      border: 1px solid #d9cfbf;
+    }
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .grid { grid-template-columns: 1fr; }
+      .latin { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1>Dravya Plant Atlas</h1>
+      <p>
+        A shareable HTML atlas of Dravyas using GitHub-hosted images.
+        Anyone with this HTML file and internet access can open it and view all plant images as a website.
+      </p>
+    </div>
+
+    <div class="controls">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="#6d685f">
+          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.44 1.658a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
+        </svg>
+        <input id="searchInput" type="text" placeholder="Search dravya, Latin name, family..." oninput="filterCards()">
+      </div>
+      <button class="btn" onclick="clearSearch()">Clear Search</button>
+      <div class="count" id="countBadge">Showing: 60</div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="footer">
+      user-Rutik
+    </div>
+  </div>
+
+  <div class="modal" id="modal" onclick="if(event.target===this) closeModal()">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title" id="modalTitle">Plant</div>
+          <div class="modal-sub" id="modalSub">Latin Name · Family</div>
+        </div>
+        <button class="close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <img id="modalImg" class="modal-img" src="" alt="Plant image">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const base = "https://raw.githubusercontent.com/Rutik009/Dravya/main/";
+
+    const dravyas = [
+      ["Agnimantha","Premna integrifolia","Lamiaceae","agnimantha.jpg"],
+      ["Ahiphena","Papaver somniferum","Papaveraceae","ahiphena.jpg"],
+      ["Ajamoda","Trachyspermum roxburghianum","Apiaceae","ajamoda.jpg"],
+      ["Amalaki","Emblica officinalis / Phyllanthus emblica","Phyllanthaceae","amalaki.jpg"],
+      ["Apamarga","Achyranthes aspera","Amaranthaceae","apamarga.jpg"],
+      ["Aragwadha","Cassia fistula","Fabaceae","aragwadha.jpg"],
+      ["Arjuna","Terminalia arjuna","Combretaceae","arjuna.jpg"],
+      ["Ashoka","Saraca asoca","Fabaceae","ashoka.jpg"],
+      ["Ashwagandha","Withania somnifera","Solanaceae","ashwagandha.jpg"],
+      ["Asthishrunkhala","Cissus quadrangularis","Vitaceae","asthishrunkhala.jpg"],
+      ["Ativisha","Aconitum heterophyllum","Ranunculaceae","ativisha.jpg"],
+      ["Bakuchi","Psoralea corylifolia","Fabaceae","bakuchi.jpg"],
+      ["Bala","Sida cordifolia","Malvaceae","bala.jpg"],
+      ["Beejaka","Pterocarpus marsupium","Fabaceae","beejaka.jpg"],
+      ["Bhallataka","Semecarpus anacardium","Anacardiaceae","bhallataka.jpg"],
+      ["Bharangi","Clerodendrum serratum","Lamiaceae","bharangi.jpg"],
+      ["Bhrungaraja","Eclipta alba","Asteraceae","bhrungaraja.jpg"],
+      ["Bhumyamalaki","Phyllanthus niruri","Phyllanthaceae","bhumyamalaki.jpg"],
+      ["Bilva","Aegle marmelos","Rutaceae","bilva.jpg"],
+      ["Brahmi","Bacopa monnieri","Plantaginaceae","brahmi.jpg"],
+      ["Brihati","Solanum indicum","Solanaceae","brihati.jpg"],
+      ["Chakramarda","Cassia tora","Fabaceae","chakramarda.jpg"],
+      ["Chandana","Santalum album","Santalaceae","chandana.jpg"],
+      ["Chitraka","Plumbago zeylanica","Plumbaginaceae","chitraka.jpg"],
+      ["Dadima","Punica granatum","Lythraceae","dadima.jpg"],
+      ["Dhamasa","Fagonia cretica","Zygophyllaceae","dhamasa.jpg"],
+      ["Dhanyaka","Coriandrum sativum","Apiaceae","dhanyaka.jpg"],
+      ["Dhataki","Woodfordia fruticosa","Lythraceae","dhataki.jpg"],
+      ["Ela","Elettaria cardamomum","Zingiberaceae","ela.jpg"],
+      ["Eranda","Ricinus communis","Euphorbiaceae","eranda.jpg"],
+      ["Gambhari","Gmelina arborea","Lamiaceae","gambhari.jpg"],
+      ["Gokshura","Tribulus terrestris","Zygophyllaceae","gokshura.jpg"],
+      ["Guduchi","Tinospora cordifolia","Menispermaceae","guduchi.jpg"],
+      ["Guggulu","Commiphora mukul","Burseraceae","guggulu.jpg"],
+      ["Haridra","Curcuma longa","Zingiberaceae","haridra.jpg"],
+      ["Haritaki","Terminalia chebula","Combretaceae","haritaki.jpg"],
+      ["Hingu","Ferula asafoetida","Apiaceae","hingu.jpg"],
+      ["Jambu","Syzygium cumini","Myrtaceae","jambu.jpg"],
+      ["Japa","Hibiscus rosa-sinensis","Malvaceae","japa.jpg"],
+      ["Jatamansi","Nardostachys jatamansi","Caprifoliaceae","jatamansi.jpg"],
+      ["Jatiphala","Myristica fragrans","Myristicaceae","jatiphala.jpg"],
+      ["Jeeraka","Cuminum cyminum","Apiaceae","jeeraka.jpg"],
+      ["Jyotishmati","Celastrus paniculatus","Celastraceae","jyotishmati.jpg"],
+      ["Kalamegha","Andrographis paniculata","Acanthaceae","kalamegha.jpg"],
+      ["Kampillaka","Mallotus philippensis","Euphorbiaceae","kampillaka.jpg"],
+      ["Kanchanara","Bauhinia variegata","Fabaceae","kanchanara.jpg"],
+      ["Kantakari","Solanum xanthocarpum","Solanaceae","kantakari.jpg"],
+      ["Kapikachhu","Mucuna pruriens","Fabaceae","kapikachhu.jpg"],
+      ["Karkatshrungi","Pistacia integerrima","Anacardiaceae","karkatshrungi.jpg"],
+      ["Katuki","Picrorhiza kurroa","Plantaginaceae","katuki.jpg"],
+      ["Khadira","Acacia catechu","Fabaceae","khadira.jpg"],
+      ["Kulatha","Macrotyloma uniflorum","Fabaceae","kulatha.jpg"],
+      ["Kumari","Aloe vera","Asphodelaceae","kumari.jpg"],
+      ["Kumkum","Crocus sativus","Iridaceae","kumkum.jpg"],
+      ["Kutaja","Holarrhena antidysenterica","Apocynaceae","kutaja.jpg"],
+      ["Lajjalu","Mimosa pudica","Fabaceae","lajjalu.jpg"],
+      ["Latakaranja","Caesalpinia bonduc","Fabaceae","latakaranja.jpg"],
+      ["Lavanga","Syzygium aromaticum","Myrtaceae","lavanga.jpg"],
+      ["Lodhra","Symplocos racemosa","Symplocaceae","lodhra.jpg"]
+    ];
+
+    const grid = document.getElementById("grid");
+
+    function renderCards(list) {
+      grid.innerHTML = "";
+      list.forEach(([name, latin, family, image]) => {
+        const url = base + image;
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="img-wrap">
+            <img class="plant-img" src="${url}" alt="${name}" onclick="openModal('${url}','${name}','${latin}','${family}')" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="fallback">🌿</div>
+            <div class="label">GitHub hosted image</div>
+          </div>
+          <div class="body">
+            <div class="name">${name}</div>
+            <div class="latin">${latin}</div>
+            <div class="family"><strong>Family:</strong> ${family}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      document.getElementById("countBadge").textContent = "Showing: " + list.length;
+    }
+
+    function filterCards() {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = dravyas.filter(([name, latin, family]) =>
+        `${name} ${latin} ${family}`.toLowerCase().includes(q)
+      );
+      renderCards(filtered);
+    }
+
+    function clearSearch() {
+      document.getElementById("searchInput").value = "";
+      renderCards(dravyas);
+    }
+
+    function openModal(src, name, latin, family) {
+      document.getElementById("modalImg").src = src;
+      document.getElementById("modalTitle").textContent = name;
+      document.getElementById("modalSub").textContent = `${latin} · ${family}`;
+      document.getElementById("modal").classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") closeModal();
+      if (e.key === "/" && !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        document.getElementById("searchInput").focus();
+      }
+    });
+
+    renderCards(dravyas);
+  </script>
+</body>
+</html>
